@@ -1,36 +1,34 @@
 const express = require('express');
 const session = require('express-session');
 const cors = require('cors');
-const authRoutes = require('./routes/auth'); // Importa seu arquivo de login
+const authRoutes = require('./routes/auth');
+// 1. IMPORTAR A NOVA ROTA
+const ticketRoutes = require('./routes/tickets'); 
 
 const app = express();
-const PORT = 3000; // Ou a porta que preferir
+const PORT = 3000;
 
-// Configuração para permitir JSON
 app.use(express.json());
-
-// Configuração de CORS (Permite que o celular acesse o servidor)
 app.use(cors());
 
-// Configuração da Sessão (Necessário pois seu login usa req.session)
 app.use(session({
-    secret: 'segredo_helpbox', // Mude para algo seguro em produção
+    secret: 'segredo_helpbox',
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false } // 'false' é importante para rodar localmente (HTTP)
+    cookie: { secure: false }
 }));
 
 // --- ROTAS ---
-// Toda vez que chamar /auth/login, ele vai para o seu arquivo auth.js
 app.use('/auth', authRoutes);
+// 2. USAR A NOVA ROTA
+app.use('/tickets', ticketRoutes); 
 
-// Rota de teste simples
 app.get('/', (req, res) => {
     res.send('Servidor HelpBox Backend rodando!');
 });
 
-// Inicia o servidor
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
-    console.log(`Para acesso mobile, use o IP da sua máquina: http://SEU_IP:${PORT}`);
+    // O IP aqui é apenas visual, o importante é o código
+    console.log(`Para acesso mobile: http://SEU_IP_AQUI:${PORT}`);
 });
