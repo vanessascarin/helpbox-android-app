@@ -1,14 +1,14 @@
-const sql = require('mssql/msnodesqlv8');
+const sql = require('mssql'); // Driver padrão (mais estável)
 
 const config = {
-    database: 'HelpBoxDB',
-    // TENTATIVA VIA LOCALHOST + PORTA (Geralmente infalível se o passo 1 foi feito)
-    server: 'localhost', 
-    port: 1433, 
-    driver: 'msnodesqlv8',
+    user: 'micaiasadm',       // Seu usuário SQL
+    password: 'Monteiro140',  // Sua senha SQL
+    server: 'localhost',      
+    port: 1433,               // Porta fixa (aquela que habilitamos no IPAll)
+    database: 'HelpboxMobileBD', // Nome do banco novo
     options: {
-        trustedConnection: true,
-        trustServerCertificate: true
+        encrypt: false, // Necessário false para conexão local
+        trustServerCertificate: true // Aceita certificado auto-assinado
     }
 };
 
@@ -19,7 +19,7 @@ const getPool = async () => {
     poolPromise = new sql.ConnectionPool(config)
       .connect()
       .then(pool => {
-        console.log('✅ Conectado ao SQL Server com Sucesso!');
+        console.log('✅ Conectado ao SQL Server (HelpboxMobileBD) com Sucesso!');
         return pool;
       })
       .catch(err => {

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthContextType, User, AuthSession } from '../types';
 import api from './api'; // Importa a conexão configurada com seu IP
 
-// Importação segura do AsyncStorage (evita erro na web/preview se não estiver instalado)
+// Importação segura do AsyncStorage
 let AsyncStorage: any = null;
 try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -11,7 +11,7 @@ try {
     console.warn('AsyncStorage não detectado. Usando memória temporária.');
 }
 
-// --- Helpers para Armazenamento (Funciona no Celular e na Web) ---
+// --- Helpers para Armazenamento ---
 const memoryStorage: Record<string, string> = {};
 
 const storageGet = async (key: string) => {
@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             if (session) {
                 const parsedSession: AuthSession = JSON.parse(session);
                 
-                // Verifica se a sessão ainda é válida (data de expiração)
+                // Verifica validade da sessão
                 if (parsedSession.expiresAt > Date.now()) {
                     setUser(parsedSession.user);
                     setIsSignedIn(true);
@@ -71,7 +71,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             console.log('Iniciando login via API...');
             
             // 1. Chamada ao Backend
-            // Enviamos "senha" porque é isso que seu Node.js espera no req.body
             const response = await api.post('/auth/login', {
                 email: email,
                 senha: password 
@@ -79,32 +78,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             console.log('Resposta do servidor:', response.data);
 
-            // 2. Pegamos o objeto de usuário que adicionamos no backend
             const dadosDoBanco = response.data.usuario;
 
             if (!dadosDoBanco) {
-                throw new Error('O servidor não retornou os dados do usuário. Verifique se o backend foi atualizado.');
+                throw new Error('O servidor não retornou os dados do usuário.');
             }
 
-            // 3. Mapeamento de Campos (SQL -> App)
-            // O Banco devolve: id_User, nome_User, departamento_User
-            // O App espera: id, name, department (conforme seu User type)
+            // --- CORREÇÃO DO NOME ---
+            // Junta Nome + Sobrenome vindos do Backend
+            const nomeCompleto = `${dadosDoBanco.nome || ''} ${dadosDoBanco.sobrenome || ''}`.trim();
+
+            // Mapeia para o formato que o App espera
             const usuarioFormatado: User = {
-                id: dadosDoBanco.id_User?.toString() || '0',
-                name: dadosDoBanco.nome_User || 'Usuário',
-                email: dadosDoBanco.email_User || email,
-                department: dadosDoBanco.departamento_User || 'Geral',
-                // Adicione aqui outros campos se o seu type User exigir
+                id: (dadosDoBanco.id || dadosDoBanco.id_User)?.toString() || '0',
+                name: nomeCompleto || 'Usuário', // Usa o nome composto
+                email: dadosDoBanco.email || email,
+                department: dadosDoBanco.departamento || 'Geral',
             };
 
             // 4. Cria a Sessão Local
             const session: AuthSession = {
                 user: usuarioFormatado,
-                token: 'dummy_token', // Token simbólico pois a auth é via cookie/sessão
-                expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, // Expira em 7 dias
+                token: 'dummy_token',
+                expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
             };
 
-            // 5. Salva no celular e atualiza estado
+            // 5. Salva e Atualiza
             await storageSet('authSession', JSON.stringify(session));
             setUser(usuarioFormatado);
             setIsSignedIn(true);
@@ -115,11 +114,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             let mensagemErro = 'Erro ao conectar ao servidor.';
 
             if (error.response) {
-                // O servidor respondeu (ex: 401 Senha incorreta)
+                // Erro vindo do Backend (ex: 401 Senha Incorreta)
                 mensagemErro = error.response.data.error || 'Credenciais inválidas.';
             } else if (error.request) {
-                // O servidor não respondeu (Erro de IP ou Rede)
-                mensagemErro = 'O servidor não respondeu. Verifique o IP no lib/api.ts';
+                // Erro de Rede (Backend desligado ou IP errado)
+                mensagemErro = 'O servidor não respondeu. Verifique se o backend está rodando e o IP no api.ts.';
             } else {
                 mensagemErro = error.message;
             }
@@ -133,10 +132,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const register = async (name: string, email: string, password: string, department: string): Promise<void> => {
         setIsLoading(true);
         try {
-            // Espaço reservado para futura implementação da rota de registro
             console.warn('Rota de registro não implementada ainda.');
             throw new Error('O registro de novos usuários deve ser feito pelo painel administrativo.');
-            
         } catch (error: any) {
             throw new Error(error.message || 'Erro ao registrar');
         } finally {
@@ -147,7 +144,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const logout = async (): Promise<void> => {
         setIsLoading(true);
         try {
-            // Remove a sessão do armazenamento local
             await storageRemove('authSession');
             setUser(null);
             setIsSignedIn(false);
