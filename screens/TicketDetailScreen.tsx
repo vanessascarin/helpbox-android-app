@@ -1,16 +1,16 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     Text,
     View,
     ScrollView,
-    TouchableOpacity,
+    ActivityIndicator,
+    TouchableOpacity
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import { RootStackParamList } from '../types';
-import { mockTickets } from '../lib/mockData';
 import {
     getStatusLabel,
     getStatusColor,
@@ -21,22 +21,114 @@ import {
 } from '../lib/utils';
 import { colors, spacing, borderRadius, typography } from '../lib/theme';
 import Header from '../components/Header';
+import api from '../lib/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TicketDetail'>;
 
+interface TicketDetail {
+    id: string;
+    title: string;
+    status: 'open' | 'in_progress' | 'closed';
+    severity: 'high' | 'medium' | 'low';
+    category: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    requester: {
+        name: string;
+    };
+    assignedTo?: {
+        name: string;
+    };
+    aiSolution?: string;
+    techSolution?: string;
+}
+
 export default function TicketDetailScreen({ navigation, route }: Props) {
     const { ticketId } = route.params;
+    
+    const [ticket, setTicket] = useState<TicketDetail | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
-    const ticket = useMemo(
-        () => mockTickets.find((t) => t.id === ticketId),
-        [ticketId],
-    );
+    const traduzirStatus = (statusBanco: string): 'open' | 'in_progress' | 'closed' => {
+        const s = statusBanco ? statusBanco.toLowerCase() : '';
+        if (s.includes('aberto')) return 'open';
+        if (s.includes('andamento')) return 'in_progress';
+        if (s.includes('fechado')) return 'closed';
+        return 'open';
+    };
 
-    if (!ticket) {
+    const traduzirPrioridade = (prio: string): 'high' | 'medium' | 'low' => {
+        const p = prio ? prio.toUpperCase() : 'M';
+        if (p === 'A') return 'high';
+        if (p === 'B') return 'low';
+        return 'medium';
+    };
+
+    const fetchTicketDetails = async () => {
+        try {
+            const response = await api.get(`/tickets/${ticketId}`);
+            const dados = response.data;
+
+            const detalheFormatado: TicketDetail = {
+                id: dados.id_Cham.toString(),
+                title: dados.titulo_Cham,
+                status: traduzirStatus(dados.status_Cham),
+                severity: traduzirPrioridade(dados.prioridade_Cham),
+                category: dados.categoria_Cham || 'Geral',
+                description: dados.descricao_Cham,
+                createdAt: dados.dataAbertura_Cham,
+                updatedAt: dados.dataFechamento_Cham || dados.dataAbertura_Cham,
+                
+                requester: {
+                    name: `${dados.clienteNome || ''} ${dados.clienteSobrenome || ''}`.trim() || 'Usuário',
+                },
+                
+                assignedTo: dados.tecNome ? {
+                    name: `${dados.tecNome} ${dados.tecSobrenome || ''}`.trim(),
+                } : undefined,
+
+                aiSolution: dados.solucaoIA_Cham,
+                techSolution: dados.solucaoTec_Cham
+            };
+
+            setTicket(detalheFormatado);
+        } catch (err) {
+            console.error('Erro ao buscar detalhes:', err);
+            setError('Não foi possível carregar os detalhes do chamado.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTicketDetails();
+    }, [ticketId]);
+
+    if (loading) {
+        return (
+            <SafeAreaView style={styles.safeArea}>
+                <View style={styles.centerContainer}>
+                    <ActivityIndicator size="large" color={colors.primary} />
+                    <Text style={{ marginTop: 10, color: colors.onSurfaceVariant }}>Carregando detalhes...</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    if (!ticket || error) {
         return (
             <SafeAreaView style={styles.safeArea}>
                 <View style={styles.container}>
-                    <Text style={styles.errorText}>Ticket não encontrado</Text>
+                    <Header title="Erro" showBack onBack={() => navigation.goBack()} />
+                    <View style={styles.centerContainer}>
+                        <MaterialIcons name="error-outline" size={48} color={colors.error} />
+                        <Text style={styles.errorText}>{error || 'Ticket não encontrado'}</Text>
+                        <TouchableOpacity style={styles.retryButton} onPress={fetchTicketDetails}>
+                            <Text style={styles.retryText}>Tentar Novamente</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </SafeAreaView>
         );
@@ -48,7 +140,7 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
     return (
         <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
             <View style={styles.container}>
-                <Header title={ticket.id} showBack onBack={() => navigation.goBack()} />
+                <Header title={`#${ticket.id}`} showBack onBack={() => navigation.goBack()} />
 
                 <ScrollView
                     showsVerticalScrollIndicator={false}
@@ -91,13 +183,15 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
 
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Data de Abertura:</Text>
-                            <Text style={styles.value}>{formatDate(ticket.createdAt)}</Text>
+                            {/* CORREÇÃO AQUI: new Date() */}
+                            <Text style={styles.value}>{formatDate(new Date(ticket.createdAt))}</Text>
                         </View>
                         <View style={styles.divider} />
 
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Última Atualização:</Text>
-                            <Text style={styles.value}>{formatDate(ticket.updatedAt)}</Text>
+                            {/* CORREÇÃO AQUI: new Date() */}
+                            <Text style={styles.value}>{formatDate(new Date(ticket.updatedAt))}</Text>
                         </View>
                     </View>
 
@@ -115,14 +209,6 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
                                 <Text style={styles.requesterName}>
                                     {ticket.requester.name}
                                 </Text>
-                                <Text style={styles.requesterEmail}>
-                                    {ticket.requester.email}
-                                </Text>
-                                {ticket.requester.department && (
-                                    <Text style={styles.requesterDept}>
-                                        {ticket.requester.department}
-                                    </Text>
-                                )}
                             </View>
                         </View>
                     </View>
@@ -135,7 +221,7 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
                         </View>
                     </View>
 
-                    {/* Atribuído a (se aplicável) */}
+                    {/* Atribuído a */}
                     {ticket.assignedTo && (
                         <View style={styles.section}>
                             <Text style={styles.sectionTitle}>Atribuído a</Text>
@@ -149,9 +235,6 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
                                 <View>
                                     <Text style={styles.requesterName}>
                                         {ticket.assignedTo.name}
-                                    </Text>
-                                    <Text style={styles.requesterEmail}>
-                                        {ticket.assignedTo.email}
                                     </Text>
                                 </View>
                             </View>
@@ -171,6 +254,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: colors.background,
+    },
+    centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     header: {
         flexDirection: 'row',
@@ -264,17 +352,6 @@ const styles = StyleSheet.create({
         ...typography.headingSm,
         color: colors.onSurface,
     },
-    requesterEmail: {
-        ...typography.bodySm,
-        color: colors.onSurfaceVariant,
-        marginTop: spacing.xs,
-    },
-    requesterDept: {
-        ...typography.bodySm,
-        color: colors.onSurfaceVariant,
-        marginTop: spacing.xs,
-        fontStyle: 'italic',
-    },
     descriptionCard: {
         backgroundColor: colors.surface,
         borderRadius: borderRadius.md,
@@ -291,5 +368,16 @@ const styles = StyleSheet.create({
         ...typography.bodyMd,
         color: colors.error,
         textAlign: 'center',
+        marginBottom: spacing.md,
+    },
+    retryButton: {
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        backgroundColor: colors.primary,
+        borderRadius: borderRadius.md,
+    },
+    retryText: {
+        color: colors.onPrimary,
+        fontWeight: '600',
     },
 });
