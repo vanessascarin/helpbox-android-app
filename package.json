@@ -1,0 +1,48 @@
+{
+    "name": "helpbox",
+    "displayName": "HelpBox",
+    "version": "1.0.0",
+    "private": true,
+    "main": "node_modules/expo/AppEntry.js",
+    "scripts": {
+        "start": "expo start",
+        "android": "expo run:android",
+        "ios": "expo run:ios",
+        "web": "expo start --web",
+        "typecheck": "tsc --noEmit",
+        "lint": "eslint --ext .ts,.tsx ."
+    },
+    "dependencies": {
+        "@expo/vector-icons": "^15.0.3",
+        "@react-native-async-storage/async-storage": "^2.2.0",
+        "@react-navigation/bottom-tabs": "^6.5.7",
+        "@react-navigation/native": "^6.1.6",
+        "@react-navigation/native-stack": "^6.9.12",
+        "axios": "^1.13.2",
+        "bcrypt": "^6.0.0",
+        "cors": "^2.8.5",
+        "expo": "^54.0.21",
+        "expo-font": "~14.0.9",
+        "expo-status-bar": "~3.0.8",
+        "express": "^5.1.0",
+        "express-session": "^1.18.2",
+        "msnodesqlv8": "^5.1.1",
+        "mssql": "^12.1.0",
+        "react": "19.1.0",
+        "react-native": "0.81.5",
+        "react-native-gesture-handler": "~2.28.0",
+        "react-native-safe-area-context": "~5.6.0",
+        "react-native-screens": "~4.16.0"
+    },
+    "devDependencies": {
+        "@types/react": "~19.1.10",
+        "@typescript-eslint/eslint-plugin": "5.57.0",
+        "@typescript-eslint/parser": "5.57.0",
+        "eslint": "8.49.0",
+        "eslint-config-prettier": "8.8.0",
+        "typescript": "~5.9.2"
+    },
+    "engines": {
+        "node": ">=14"
+    }
+}
