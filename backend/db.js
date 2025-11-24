@@ -1,14 +1,14 @@
-const sql = require('mssql'); // Usamos o driver padrão agora (mais estável)
+const sql = require('mssql'); // Driver padrão (mais estável)
 
 const config = {
-    user: 'micaiasadm',       // Seu super usuário
-    password: 'Monteiro140',  // Sua senha
-    server: 'localhost',      // Como habilitamos a porta 1433, localhost funciona bem
-    port: 1433,               // Garante que vai bater na porta certa
-    database: 'HelpboxMobileBD', // O nome do seu novo banco
+    user: 'micaiasadm',       // Seu usuário SQL
+    password: 'Monteiro140',  // Sua senha SQL
+    server: 'localhost',      
+    port: 1433,               // Porta fixa (aquela que habilitamos no IPAll)
+    database: 'HelpboxMobileBD', // Nome do banco novo
     options: {
-        encrypt: false, // 'false' é melhor para conexões locais
-        trustServerCertificate: true // Aceita certificados locais
+        encrypt: false, // Necessário false para conexão local
+        trustServerCertificate: true // Aceita certificado auto-assinado
     }
 };
 
