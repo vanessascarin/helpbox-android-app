@@ -6,7 +6,6 @@ import {
     TextInput,
     TouchableOpacity,
     ActivityIndicator,
-    Alert,
     SafeAreaView,
     ScrollView,
     KeyboardAvoidingView,
@@ -22,10 +21,13 @@ type LoginMode = 'login' | 'register';
 export default function LoginScreen() {
     const { login, register, isLoading } = useAuth();
     const [mode, setMode] = useState<LoginMode>('login');
+    
+    // --- MUDANÇA AQUI: Iniciamos com strings vazias ---
     const [name, setName] = useState('');
-    const [email, setEmail] = useState('demo@example.com');
-    const [password, setPassword] = useState('demo123');
+    const [email, setEmail] = useState(''); 
+    const [password, setPassword] = useState('');
     const [department, setDepartment] = useState('');
+    
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
 
@@ -66,15 +68,6 @@ export default function LoginScreen() {
         setPassword('');
         setDepartment('');
         setMode(mode === 'login' ? 'register' : 'login');
-    };
-
-    const handleDemoLogin = async () => {
-        setEmail('demo@example.com');
-        setPassword('demo123');
-        setError('');
-        setTimeout(() => {
-            handleLogin();
-        }, 100);
     };
 
     const isFormValid =
@@ -182,7 +175,7 @@ export default function LoginScreen() {
                             />
                             <TextInput
                                 style={[styles.input, { flex: 1 }]}
-                                placeholder="Mínimo 6 caracteres"
+                                placeholder="Sua senha"
                                 value={password}
                                 onChangeText={setPassword}
                                 secureTextEntry={!showPassword}
@@ -223,21 +216,6 @@ export default function LoginScreen() {
                             )}
                         </TouchableOpacity>
 
-                        {mode === 'login' && (
-                            <TouchableOpacity
-                                style={styles.demoButton}
-                                onPress={handleDemoLogin}
-                                disabled={isLoading}
-                            >
-                                <MaterialCommunityIcons
-                                    name="play-circle"
-                                    size={18}
-                                    color={colors.primary}
-                                />
-                                <Text style={styles.demoButtonText}>Teste com Demo</Text>
-                            </TouchableOpacity>
-                        )}
-
                         <TouchableOpacity
                             style={styles.secondaryButton}
                             onPress={handleSwitchMode}
@@ -249,14 +227,6 @@ export default function LoginScreen() {
                                     : 'Já tem conta? Faça login'}
                             </Text>
                         </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.footer}>
-                        <Text style={styles.footerText}>
-                            {mode === 'login'
-                                ? 'Teste com: demo@example.com / demo123'
-                                : 'Ou use: joao.silva@company.com / senha123'}
-                        </Text>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -354,23 +324,6 @@ const styles = StyleSheet.create({
     buttonDisabled: {
         opacity: 0.6,
     },
-    demoButton: {
-        marginTop: spacing.md,
-        paddingVertical: spacing.md,
-        borderRadius: borderRadius.md,
-        backgroundColor: '#EFF6FF',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: spacing.sm,
-        borderWidth: 1,
-        borderColor: colors.primary,
-    },
-    demoButtonText: {
-        ...typography.labelMd,
-        color: colors.primary,
-        fontSize: 16,
-    },
     secondaryButton: {
         marginTop: spacing.md,
         paddingVertical: spacing.md,
@@ -379,14 +332,5 @@ const styles = StyleSheet.create({
     secondaryButtonText: {
         ...typography.bodyMd,
         color: colors.primary,
-    },
-    footer: {
-        alignItems: 'center',
-        paddingTop: spacing.xl,
-    },
-    footerText: {
-        ...typography.bodySm,
-        color: colors.onSurfaceVariant,
-        textAlign: 'center',
     },
 });
