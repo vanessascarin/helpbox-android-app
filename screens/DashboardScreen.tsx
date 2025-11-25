@@ -104,7 +104,7 @@ export default function DashboardScreen({ navigation }: Props) {
 
                 <View style={styles.welcomeSection}>
                     <Text style={styles.welcomeText}>
-                        Bem-vindo, <Text style={styles.userName}>{user?.name}</Text>!
+                        Olá, <Text style={styles.userName}>{user?.name}</Text>!
                     </Text>
                 </View>
 
