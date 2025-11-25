@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // VOLTAMOS PARA O IP LOCAL
-const API_URL = 'http://192.168.15.19:3000'; 
+const API_URL = 'http://192.168.209.17:3000'; 
 
 console.log('--- CONFIGURAÇÃO API (LOCAL) ---');
 console.log('Conectando em:', API_URL);
