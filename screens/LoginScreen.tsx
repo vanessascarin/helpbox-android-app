@@ -61,7 +61,7 @@ export default function LoginScreen() {
                         
                         <Text style={styles.title}>HelpBox</Text>
                         <Text style={styles.subtitle}>
-                           Insira suas credenciais para continuar.
+                            Suporte aos chamados da Esfera Contabilidade
                         </Text>
                     </View>
 
@@ -75,7 +75,7 @@ export default function LoginScreen() {
                             />
                             <TextInput
                                 style={styles.input}
-                                placeholder="Insira seu e-mail corporativo"
+                                placeholder="seu@email.com"
                                 value={email}
                                 onChangeText={setEmail}
                                 keyboardType="email-address"
@@ -133,7 +133,6 @@ export default function LoginScreen() {
                             )}
                         </TouchableOpacity>
 
-                        {/* MUDANÇA AQUI: Agora é apenas uma View com Text, sem clique */}
                         <View style={styles.infoContainer}>
                             <Text style={styles.infoText}>
                                 Converse com seu gestor para criar uma nova conta ou recuperar sua senha.
@@ -177,7 +176,7 @@ const styles = StyleSheet.create({
     subtitle: {
         ...typography.bodyMd,
         color: colors.onSurfaceVariant,
-        textAlign: 'center', // Centraliza o subtítulo também
+        textAlign: 'center',
     },
     formContainer: {
         marginBottom: spacing.xxl,
@@ -226,7 +225,7 @@ const styles = StyleSheet.create({
         marginTop: spacing.xl,
         paddingVertical: spacing.md,
         borderRadius: borderRadius.md,
-        backgroundColor: colors.primary,
+        backgroundColor: '#393C5D', // <--- COR ALTERADA PARA AZUL PETRÓLEO
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -239,15 +238,14 @@ const styles = StyleSheet.create({
     buttonDisabled: {
         opacity: 0.6,
     },
-    // Novos estilos para o texto informativo (não clicável)
     infoContainer: {
         marginTop: spacing.lg,
         paddingHorizontal: spacing.md,
         alignItems: 'center',
     },
     infoText: {
-        ...typography.bodySm, // Fonte menor e mais discreta
-        color: colors.onSurfaceVariant, // Cor cinza suave
+        ...typography.bodySm,
+        color: colors.onSurfaceVariant,
         textAlign: 'center',
         lineHeight: 20,
     },
