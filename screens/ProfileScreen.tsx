@@ -18,7 +18,8 @@ import { RootStackParamList } from '../types';
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 export default function ProfileScreen({ navigation }: Props) {
-    const { user, logout } = useAuth();
+    // Usamos 'any' no user para evitar erro de TS caso o tipo User não tenha sido atualizado ainda com 'level'
+    const { user, logout } = useAuth() as any; 
 
     const handleLogout = () => {
         Alert.alert(
@@ -32,7 +33,6 @@ export default function ProfileScreen({ navigation }: Props) {
                     onPress: async () => {
                         try {
                             await logout();
-                            // O AuthContext vai disparar a mudança de estado e o App.tsx vai jogar pro Login
                         } catch (error) {
                             console.error(error);
                         }
@@ -40,6 +40,13 @@ export default function ProfileScreen({ navigation }: Props) {
                 }
             ]
         );
+    };
+
+    // Função para deixar o nível mais amigável
+    const getNivelLabel = (nivel: number) => {
+        if (nivel >= 3) return 'Master / Admin';
+        if (nivel === 2) return 'Técnico de Suporte';
+        return 'Usuário Padrão';
     };
 
     return (
@@ -55,15 +62,30 @@ export default function ProfileScreen({ navigation }: Props) {
                     contentContainerStyle={styles.scrollContent}
                     showsVerticalScrollIndicator={false}
                 >
-                    {/* Cabeçalho do Perfil (Avatar + Nome) */}
+                    {/* Cabeçalho do Perfil */}
                     <View style={styles.profileHeader}>
                         <View style={styles.avatarContainer}>
                             <MaterialIcons name="person" size={64} color={colors.onPrimary} />
                         </View>
                         <Text style={styles.userName}>{user?.name || 'Usuário'}</Text>
+                        {/* Exibe o ID logo abaixo do nome, bem discreto */}
+                        <Text style={styles.userId}>ID: {user?.id}</Text>
                     </View>
 
-                    {/* Informações Pessoais */}
+                    <Text style={styles.sectionTitle}>Informações da Conta</Text>
+                    
+                    <View style={styles.card}>
+                        <View style={styles.row}>
+                            <MaterialIcons name="badge" size={24} color={colors.primary} style={styles.icon} />
+                            <View>
+                                <Text style={styles.label}>Nível de Acesso</Text>
+                                <Text style={styles.value}>
+                                    {user?.level} - {getNivelLabel(user?.level)}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+
                     <Text style={styles.sectionTitle}>Informações Pessoais</Text>
                     
                     <View style={styles.card}>
@@ -86,7 +108,6 @@ export default function ProfileScreen({ navigation }: Props) {
                         </View>
                     </View>
 
-                    {/* Botão de Sair */}
                     <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                         <MaterialIcons name="logout" size={20} color="#FFF" style={{ marginRight: 8 }} />
                         <Text style={styles.logoutText}>Sair</Text>
@@ -120,7 +141,7 @@ const styles = StyleSheet.create({
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: colors.primary, // Azul do tema
+        backgroundColor: colors.primary, 
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: spacing.md,
@@ -134,6 +155,11 @@ const styles = StyleSheet.create({
         ...typography.headingMd,
         color: colors.onBackground,
         textAlign: 'center',
+    },
+    userId: {
+        ...typography.bodySm,
+        color: colors.onSurfaceVariant,
+        marginTop: 4,
     },
     sectionTitle: {
         ...typography.headingSm,
@@ -167,13 +193,13 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     logoutButton: {
-        backgroundColor: colors.error, // Vermelho para ação de sair
+        backgroundColor: colors.error,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
         paddingVertical: spacing.md,
         borderRadius: borderRadius.md,
-        marginTop: spacing.xl, // Espaço extra para separar do conteúdo
+        marginTop: spacing.xl,
     },
     logoutText: {
         ...typography.labelLg,
