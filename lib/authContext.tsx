@@ -1,17 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AuthContextType, User, AuthSession } from '../types';
-import api from './api'; // Importa a conexão configurada com seu IP
+import api from './api'; 
 
-// Importação segura do AsyncStorage
 let AsyncStorage: any = null;
 try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     AsyncStorage = require('@react-native-async-storage/async-storage');
 } catch (e) {
     console.warn('AsyncStorage não detectado. Usando memória temporária.');
 }
 
-// --- Helpers para Armazenamento ---
 const memoryStorage: Record<string, string> = {};
 
 const storageGet = async (key: string) => {
@@ -31,7 +28,6 @@ const storageRemove = async (key: string) => {
     return;
 };
 
-// --- Contexto ---
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -39,7 +35,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState(true);
     const [isSignedIn, setIsSignedIn] = useState(false);
 
-    // Ao abrir o App, verifica se já tem usuário salvo
     useEffect(() => {
         bootstrapAsync();
     }, []);
@@ -49,8 +44,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const session = await storageGet('authSession');
             if (session) {
                 const parsedSession: AuthSession = JSON.parse(session);
-                
-                // Verifica validade da sessão
                 if (parsedSession.expiresAt > Date.now()) {
                     setUser(parsedSession.user);
                     setIsSignedIn(true);
@@ -70,7 +63,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
             console.log('Iniciando login via API...');
             
-            // 1. Chamada ao Backend
             const response = await api.post('/auth/login', {
                 email: email,
                 senha: password 
@@ -84,45 +76,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 throw new Error('O servidor não retornou os dados do usuário.');
             }
 
-            // --- CORREÇÃO DO NOME ---
-            // Junta Nome + Sobrenome vindos do Backend
             const nomeCompleto = `${dadosDoBanco.nome || ''} ${dadosDoBanco.sobrenome || ''}`.trim();
 
-            // Mapeia para o formato que o App espera
             const usuarioFormatado: User = {
                 id: (dadosDoBanco.id || dadosDoBanco.id_User)?.toString() || '0',
-                name: nomeCompleto || 'Usuário', // Usa o nome composto
+                name: nomeCompleto || 'Usuário',
                 email: dadosDoBanco.email || email,
                 department: dadosDoBanco.departamento || 'Geral',
-            };
+                // NOVO: Captura o nível de acesso (se não vier, assume 1)
+                // Nota: Você pode precisar adicionar 'level?: number' no seu arquivo types/index.ts
+                level: dadosDoBanco.nivel_acesso ?? 1 
+            } as User;
 
-            // 4. Cria a Sessão Local
             const session: AuthSession = {
                 user: usuarioFormatado,
                 token: 'dummy_token',
                 expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
             };
 
-            // 5. Salva e Atualiza
             await storageSet('authSession', JSON.stringify(session));
             setUser(usuarioFormatado);
             setIsSignedIn(true);
 
         } catch (error: any) {
             console.error('Erro detalhado do Login:', error);
-            
             let mensagemErro = 'Erro ao conectar ao servidor.';
-
             if (error.response) {
-                // Erro vindo do Backend (ex: 401 Senha Incorreta)
                 mensagemErro = error.response.data.error || 'Credenciais inválidas.';
             } else if (error.request) {
-                // Erro de Rede (Backend desligado ou IP errado)
-                mensagemErro = 'O servidor não respondeu. Verifique se o backend está rodando e o IP no api.ts.';
+                mensagemErro = 'O servidor não respondeu. Verifique o IP no api.ts.';
             } else {
                 mensagemErro = error.message;
             }
-            
             throw new Error(mensagemErro);
         } finally {
             setIsLoading(false);

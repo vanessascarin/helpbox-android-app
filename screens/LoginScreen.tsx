@@ -10,24 +10,18 @@ import {
     ScrollView,
     KeyboardAvoidingView,
     Platform,
+    Image,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../lib/theme';
-import { validateLoginForm, validateRegisterForm } from '../lib/utils';
+import { validateLoginForm } from '../lib/utils';
 import { useAuth } from '../lib/authContext';
 
-type LoginMode = 'login' | 'register';
-
 export default function LoginScreen() {
-    const { login, register, isLoading } = useAuth();
-    const [mode, setMode] = useState<LoginMode>('login');
+    const { login, isLoading } = useAuth();
     
-    // --- MUDANÇA AQUI: Iniciamos com strings vazias ---
-    const [name, setName] = useState('');
     const [email, setEmail] = useState(''); 
     const [password, setPassword] = useState('');
-    const [department, setDepartment] = useState('');
-    
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
 
@@ -46,34 +40,7 @@ export default function LoginScreen() {
         }
     };
 
-    const handleRegister = async () => {
-        const validation = validateRegisterForm(name, email, password, department);
-        if (!validation.valid) {
-            setError(validation.error || '');
-            return;
-        }
-
-        setError('');
-        try {
-            await register(name, email, password, department);
-        } catch (err: any) {
-            setError(err.message || 'Erro ao registrar');
-        }
-    };
-
-    const handleSwitchMode = () => {
-        setError('');
-        setName('');
-        setEmail('');
-        setPassword('');
-        setDepartment('');
-        setMode(mode === 'login' ? 'register' : 'login');
-    };
-
-    const isFormValid =
-        mode === 'login'
-            ? email.trim() !== '' && password.trim() !== ''
-            : email.trim() !== '' && password.trim() !== '' && name.trim() !== '' && department.trim() !== '';
+    const isFormValid = email.trim() !== '' && password.trim() !== '';
 
     return (
         <SafeAreaView style={styles.container}>
@@ -86,43 +53,20 @@ export default function LoginScreen() {
                     contentContainerStyle={styles.scrollContent}
                 >
                     <View style={styles.header}>
-                        <MaterialCommunityIcons
-                            name={'ticket'}
-                            size={60}
-                            color={colors.primary}
-                            style={styles.icon}
+                        <Image 
+                            source={require('../assets/icon.png')} 
+                            style={styles.logoImage}
+                            resizeMode="contain"
                         />
+                        
                         <Text style={styles.title}>HelpBox</Text>
                         <Text style={styles.subtitle}>
-                            {mode === 'login' ? 'Bem-vindo de volta' : 'Crie sua conta'}
+                            Suporte aos chamados da Esfera Contabilidade
                         </Text>
                     </View>
 
                     <View style={styles.formContainer}>
-                        {mode === 'register' && (
-                            <>
-                                <Text style={styles.label}>Nome Completo</Text>
-                                <View style={[styles.inputContainer, error && name === '' && styles.inputError]}>
-                                    <MaterialCommunityIcons
-                                        name="account"
-                                        size={20}
-                                        color={colors.onSurfaceVariant}
-                                    />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="João Silva"
-                                        value={name}
-                                        onChangeText={setName}
-                                        placeholderTextColor={colors.onSurfaceDisabled}
-                                        editable={!isLoading}
-                                    />
-                                </View>
-                            </>
-                        )}
-
-                        <Text style={[styles.label, mode === 'register' && { marginTop: spacing.md }]}>
-                            Email
-                        </Text>
+                        <Text style={styles.label}>Email</Text>
                         <View style={[styles.inputContainer, error && email === '' && styles.inputError]}>
                             <MaterialCommunityIcons
                                 name="email"
@@ -141,32 +85,7 @@ export default function LoginScreen() {
                             />
                         </View>
 
-                        {mode === 'register' && (
-                            <>
-                                <Text style={[styles.label, { marginTop: spacing.md }]}>Departamento</Text>
-                                <View
-                                    style={[styles.inputContainer, error && department === '' && styles.inputError]}
-                                >
-                                    <MaterialCommunityIcons
-                                        name="office-building"
-                                        size={20}
-                                        color={colors.onSurfaceVariant}
-                                    />
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="ex: TI, Suporte, RH"
-                                        value={department}
-                                        onChangeText={setDepartment}
-                                        placeholderTextColor={colors.onSurfaceDisabled}
-                                        editable={!isLoading}
-                                    />
-                                </View>
-                            </>
-                        )}
-
-                        <Text style={[styles.label, mode === 'register' && { marginTop: spacing.md }]}>
-                            Senha
-                        </Text>
+                        <Text style={[styles.label, { marginTop: spacing.md }]}>Senha</Text>
                         <View style={[styles.inputContainer, error && password === '' && styles.inputError]}>
                             <MaterialCommunityIcons
                                 name="lock"
@@ -204,29 +123,21 @@ export default function LoginScreen() {
 
                         <TouchableOpacity
                             style={[styles.primaryButton, (!isFormValid || isLoading) && styles.buttonDisabled]}
-                            onPress={mode === 'login' ? handleLogin : handleRegister}
+                            onPress={handleLogin}
                             disabled={!isFormValid || isLoading}
                         >
                             {isLoading ? (
                                 <ActivityIndicator color={colors.onPrimary} size="small" />
                             ) : (
-                                <Text style={styles.primaryButtonText}>
-                                    {mode === 'login' ? 'Entrar' : 'Registrar'}
-                                </Text>
+                                <Text style={styles.primaryButtonText}>Entrar</Text>
                             )}
                         </TouchableOpacity>
 
-                        <TouchableOpacity
-                            style={styles.secondaryButton}
-                            onPress={handleSwitchMode}
-                            disabled={isLoading}
-                        >
-                            <Text style={styles.secondaryButtonText}>
-                                {mode === 'login'
-                                    ? 'Converse com seu gestor para criar uma nova conta.'
-                                    : 'Já tem conta? Faça login'}
+                        <View style={styles.infoContainer}>
+                            <Text style={styles.infoText}>
+                                Converse com seu gestor para criar uma nova conta ou recuperar sua senha.
                             </Text>
-                        </TouchableOpacity>
+                        </View>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -252,7 +163,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: spacing.xxxl,
     },
-    icon: {
+    logoImage: {
+        width: 100,
+        height: 100,
         marginBottom: spacing.lg,
     },
     title: {
@@ -263,6 +176,7 @@ const styles = StyleSheet.create({
     subtitle: {
         ...typography.bodyMd,
         color: colors.onSurfaceVariant,
+        textAlign: 'center',
     },
     formContainer: {
         marginBottom: spacing.xxl,
@@ -311,7 +225,7 @@ const styles = StyleSheet.create({
         marginTop: spacing.xl,
         paddingVertical: spacing.md,
         borderRadius: borderRadius.md,
-        backgroundColor: colors.primary,
+        backgroundColor: '#393C5D', // <--- COR ALTERADA PARA AZUL PETRÓLEO
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -324,13 +238,15 @@ const styles = StyleSheet.create({
     buttonDisabled: {
         opacity: 0.6,
     },
-    secondaryButton: {
-        marginTop: spacing.md,
-        paddingVertical: spacing.md,
+    infoContainer: {
+        marginTop: spacing.lg,
+        paddingHorizontal: spacing.md,
         alignItems: 'center',
     },
-    secondaryButtonText: {
-        ...typography.bodyMd,
-        color: colors.primary,
+    infoText: {
+        ...typography.bodySm,
+        color: colors.onSurfaceVariant,
+        textAlign: 'center',
+        lineHeight: 20,
     },
 });

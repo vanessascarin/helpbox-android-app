@@ -104,7 +104,7 @@ export default function DashboardScreen({ navigation }: Props) {
 
                 <View style={styles.welcomeSection}>
                     <Text style={styles.welcomeText}>
-                        Bem-vindo, <Text style={styles.userName}>{user?.name}</Text>!
+                        Olá, <Text style={styles.userName}>{user?.name}</Text>!
                     </Text>
                 </View>
 
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     iconButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', borderRadius: borderRadius.md, backgroundColor: colors.surfaceVariant },
     profileButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', borderRadius: borderRadius.full, backgroundColor: colors.surfaceVariant },
-    welcomeSection: { paddingHorizontal: spacing.lg, paddingVertical: spacing.lg, backgroundColor: colors.primary },
+    welcomeSection: { paddingHorizontal: spacing.lg, paddingVertical: spacing.lg, backgroundColor: '#393C5D' },
     welcomeText: { ...typography.bodyLg, color: colors.onPrimary },
     userName: { fontWeight: '600' },
     scrollContent: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xl, flexGrow: 1 },

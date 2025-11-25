@@ -10,6 +10,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
+// 1. IMPORTAÇÃO NOVA: O renderizador de Markdown
+import Markdown from 'react-native-markdown-display';
+
 import { RootStackParamList } from '../types';
 import {
     getStatusLabel,
@@ -40,7 +43,6 @@ interface TicketDetail {
     assignedTo?: {
         name: string;
     };
-    // Campos de Solução
     aiSolution?: string;
     techSolution?: string;
     finalSolution?: string;
@@ -91,7 +93,6 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
                     name: `${dados.tecNome} ${dados.tecSobrenome || ''}`.trim(),
                 } : undefined,
 
-                // Mapeamento das Soluções
                 aiSolution: dados.solucaoIA_Cham,
                 techSolution: dados.solucaoTec_Cham,
                 finalSolution: dados.solucaoFinal_Cham
@@ -214,7 +215,7 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
 
                     {/* --- BLOCO 3: CONTEÚDO (Descrição e Soluções) --- */}
                     
-                    {/* Descrição (Sempre visível) */}
+                    {/* Descrição */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Descrição</Text>
                         <View style={styles.descriptionCard}>
@@ -222,20 +223,27 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
                         </View>
                     </View>
 
-                    {/* Sugestão IA (Visível para todos os status se houver conteúdo ou para mostrar vazio) */}
+                    {/* Sugestão IA (Com Markdown!) */}
                     <View style={styles.section}>
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
                             <MaterialIcons name="smart-toy" size={20} color={colors.primary} style={{ marginRight: 8 }} />
                             <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Sugestão gerada por IA</Text>
                         </View>
                         <View style={[styles.descriptionCard, { backgroundColor: '#F0F7FF', borderColor: '#CCE5FF' }]}>
-                            <Text style={[styles.description, !ticket.aiSolution && { fontStyle: 'italic', color: colors.onSurfaceVariant }]}>
-                                {ticket.aiSolution || 'Nenhuma sugestão gerada.'}
-                            </Text>
+                            {ticket.aiSolution ? (
+                                // 2. MUDANÇA: Usamos o componente Markdown aqui com estilo personalizado
+                                <Markdown style={markdownStyles}>
+                                    {ticket.aiSolution}
+                                </Markdown>
+                            ) : (
+                                <Text style={[styles.description, { fontStyle: 'italic', color: colors.onSurfaceVariant }]}>
+                                    Nenhuma sugestão gerada.
+                                </Text>
+                            )}
                         </View>
                     </View>
 
-                    {/* Solução Técnico (Visível se Em Andamento ou Fechado) */}
+                    {/* Solução Técnico */}
                     {(ticket.status === 'in_progress' || ticket.status === 'closed') && (
                         <View style={styles.section}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
@@ -250,7 +258,7 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
                         </View>
                     )}
 
-                    {/* Solução Final (Visível apenas se Fechado) */}
+                    {/* Solução Final */}
                     {ticket.status === 'closed' && (
                         <View style={styles.section}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
@@ -270,6 +278,32 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
         </SafeAreaView>
     );
 }
+
+// 3. MUDANÇA: Estilos específicos para o Markdown (para combinar com o seu tema)
+const markdownStyles = StyleSheet.create({
+    body: {
+        ...typography.bodyMd,
+        color: colors.onSurface,
+        fontSize: 16,
+        lineHeight: 24,
+    },
+    strong: {
+        fontWeight: 'bold',
+        color: colors.onSurface,
+    },
+    heading1: {
+        ...typography.headingMd,
+        marginBottom: 10,
+        marginTop: 10,
+    },
+    paragraph: {
+        marginBottom: 10,
+        flexWrap: 'wrap', // Importante para não cortar texto
+    },
+    list_item: {
+        marginBottom: 5,
+    }
+});
 
 const styles = StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: colors.background },

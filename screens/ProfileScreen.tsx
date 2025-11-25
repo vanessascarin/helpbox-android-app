@@ -5,160 +5,114 @@ import {
     View,
     ScrollView,
     TouchableOpacity,
+    Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
-import { RootStackParamList } from '../types';
-import { colors, spacing, borderRadius, typography } from '../lib/theme';
 import { useAuth } from '../lib/authContext';
+import { colors, spacing, borderRadius, typography } from '../lib/theme';
 import Header from '../components/Header';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Profile'>;
 
 export default function ProfileScreen({ navigation }: Props) {
-    const { user, logout } = useAuth();
+    // Usamos 'any' no user para evitar erro de TS caso o tipo User não tenha sido atualizado ainda com 'level'
+    const { user, logout } = useAuth() as any; 
 
-    const handleLogout = async () => {
-        await logout();
+    const handleLogout = () => {
+        Alert.alert(
+            "Sair",
+            "Tem certeza que deseja sair da sua conta?",
+            [
+                { text: "Cancelar", style: "cancel" },
+                { 
+                    text: "Sair", 
+                    style: "destructive", 
+                    onPress: async () => {
+                        try {
+                            await logout();
+                        } catch (error) {
+                            console.error(error);
+                        }
+                    } 
+                }
+            ]
+        );
     };
 
-    if (!user) {
-        return (
-            <SafeAreaView style={styles.safeArea}>
-                <Text style={styles.headerTitle}>Usuário não encontrado</Text>
-            </SafeAreaView>
-        );
-    }
+    // Função para deixar o nível mais amigável
+    const getNivelLabel = (nivel: number) => {
+        if (nivel >= 3) return 'Master / Admin';
+        if (nivel === 2) return 'Técnico de Suporte';
+        return 'Usuário Padrão';
+    };
 
     return (
         <SafeAreaView style={styles.safeArea} edges={["left", "right", "bottom"]}>
             <View style={styles.container}>
-                <Header
-                    title="Meu Perfil"
-                    showBack
-                    onBack={() => navigation.goBack()}
+                <Header 
+                    title="Meu Perfil" 
+                    showBack 
+                    onBack={() => navigation.goBack()} 
                 />
 
-                <ScrollView
-                    showsVerticalScrollIndicator={false}
+                <ScrollView 
                     contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
                 >
-                    {/* Avatar */}
-                    <View style={styles.avatarSection}>
-                        <View style={styles.avatar}>
-                            <MaterialIcons
-                                name="account-circle"
-                                size={80}
-                                color={colors.primary}
-                            />
+                    {/* Cabeçalho do Perfil */}
+                    <View style={styles.profileHeader}>
+                        <View style={styles.avatarContainer}>
+                            <MaterialIcons name="person" size={64} color={colors.onPrimary} />
                         </View>
-                        <Text style={styles.userName}>{user.name}</Text>
+                        <Text style={styles.userName}>{user?.name || 'Usuário'}</Text>
+                        {/* Exibe o ID logo abaixo do nome, bem discreto */}
+                        <Text style={styles.userId}>ID: {user?.id}</Text>
                     </View>
 
-                    {/* Informações do usuário */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Informações Pessoais</Text>
-
-                        <View style={styles.infoCard}>
-                            <View style={styles.infoHeader}>
-                                <MaterialIcons
-                                    name="email"
-                                    size={20}
-                                    color={colors.primary}
-                                    style={{ marginRight: spacing.md }}
-                                />
-                                <Text style={styles.infoLabel}>E-mail</Text>
-                            </View>
-                            <Text style={styles.infoValue}>{user.email}</Text>
-                        </View>
-
-                        <View style={styles.infoCard}>
-                            <View style={styles.infoHeader}>
-                                <MaterialIcons
-                                    name="business"
-                                    size={20}
-                                    color={colors.primary}
-                                    style={{ marginRight: spacing.md }}
-                                />
-                                <Text style={styles.infoLabel}>Departamento</Text>
-                            </View>
-                            <Text style={styles.infoValue}>
-                                {user.department || 'Não especificado'}
-                            </Text>
-                        </View>
-                    </View>
-
-                    {/* Preferências */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Preferências</Text>
-
-                        <TouchableOpacity style={styles.preferenceItem}>
-                            <View style={styles.preferenceHeader}>
-                                <MaterialIcons
-                                    name="notifications"
-                                    size={20}
-                                    color={colors.onSurfaceVariant}
-                                    style={{ marginRight: spacing.md }}
-                                />
-                                <Text style={styles.preferenceLabel}>
-                                    Notificações
+                    <Text style={styles.sectionTitle}>Informações da Conta</Text>
+                    
+                    <View style={styles.card}>
+                        <View style={styles.row}>
+                            <MaterialIcons name="badge" size={24} color={colors.primary} style={styles.icon} />
+                            <View>
+                                <Text style={styles.label}>Nível de Acesso</Text>
+                                <Text style={styles.value}>
+                                    {user?.level} - {getNivelLabel(user?.level)}
                                 </Text>
                             </View>
-                            <MaterialIcons
-                                name="toggle-on"
-                                size={24}
-                                color={colors.success}
-                            />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.preferenceItem}>
-                            <View style={styles.preferenceHeader}>
-                                <MaterialIcons
-                                    name="dark-mode"
-                                    size={20}
-                                    color={colors.onSurfaceVariant}
-                                    style={{ marginRight: spacing.md }}
-                                />
-                                <Text style={styles.preferenceLabel}>Modo Escuro</Text>
-                            </View>
-                            <MaterialIcons
-                                name="toggle-off"
-                                size={24}
-                                color={colors.outline}
-                            />
-                        </TouchableOpacity>
+                        </View>
                     </View>
 
-                    {/* Sobre */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Sobre</Text>
-
-                        <View style={styles.aboutCard}>
-                            <View style={styles.aboutRow}>
-                                <Text style={styles.aboutLabel}>Versão do App:</Text>
-                                <Text style={styles.aboutValue}>1.0.0</Text>
-                            </View>
-                            <View style={styles.aboutRow}>
-                                <Text style={styles.aboutLabel}>Última Atualização:</Text>
-                                <Text style={styles.aboutValue}>12/01/2025</Text>
+                    <Text style={styles.sectionTitle}>Informações Pessoais</Text>
+                    
+                    <View style={styles.card}>
+                        <View style={styles.row}>
+                            <MaterialIcons name="email" size={24} color={colors.primary} style={styles.icon} />
+                            <View>
+                                <Text style={styles.label}>E-mail</Text>
+                                <Text style={styles.value}>{user?.email || 'Não informado'}</Text>
                             </View>
                         </View>
                     </View>
 
-                    {/* Botão de logout */}
-                    <TouchableOpacity
-                        style={styles.logoutButton}
-                        onPress={handleLogout}
-                    >
-                        <MaterialIcons
-                            name="logout"
-                            size={20}
-                            color={colors.onPrimary}
-                            style={{ marginRight: spacing.md }}
-                        />
+                    <View style={styles.card}>
+                        <View style={styles.row}>
+                            <MaterialIcons name="business" size={24} color={colors.primary} style={styles.icon} />
+                            <View>
+                                <Text style={styles.label}>Departamento</Text>
+                                <Text style={styles.value}>{user?.department || 'Geral'}</Text>
+                            </View>
+                        </View>
+                    </View>
+
+                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                        <MaterialIcons name="logout" size={20} color="#FFF" style={{ marginRight: 8 }} />
                         <Text style={styles.logoutText}>Sair</Text>
                     </TouchableOpacity>
+
                 </ScrollView>
             </View>
         </SafeAreaView>
@@ -174,59 +128,46 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.lg,
-        backgroundColor: colors.surface,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.outlineVariant,
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: borderRadius.md,
-        backgroundColor: colors.surfaceVariant,
-    },
-    headerTitle: {
-        ...typography.headingMd,
-        color: colors.onSurface,
-    },
     scrollContent: {
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.lg,
-        paddingBottom: spacing.xl,
+        padding: spacing.lg,
+        paddingBottom: spacing.xxl,
     },
-    avatarSection: {
+    profileHeader: {
         alignItems: 'center',
-        marginBottom: spacing.xxl,
+        marginBottom: spacing.xl,
+        marginTop: spacing.md,
     },
-    avatar: {
+    avatarContainer: {
         width: 100,
         height: 100,
-        borderRadius: borderRadius.full,
-        backgroundColor: colors.surfaceVariant,
+        borderRadius: 50,
+        backgroundColor: colors.primary, 
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: spacing.lg,
+        marginBottom: spacing.md,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
     },
     userName: {
         ...typography.headingMd,
-        color: colors.onSurface,
+        color: colors.onBackground,
+        textAlign: 'center',
     },
-    section: {
-        marginBottom: spacing.xl,
+    userId: {
+        ...typography.bodySm,
+        color: colors.onSurfaceVariant,
+        marginTop: 4,
     },
     sectionTitle: {
         ...typography.headingSm,
         color: colors.onSurface,
         marginBottom: spacing.md,
+        marginTop: spacing.sm,
     },
-    infoCard: {
+    card: {
         backgroundColor: colors.surface,
         borderRadius: borderRadius.md,
         padding: spacing.lg,
@@ -234,72 +175,35 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: colors.outlineVariant,
     },
-    infoHeader: {
+    row: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: spacing.sm,
     },
-    infoLabel: {
-        ...typography.labelMd,
+    icon: {
+        marginRight: spacing.lg,
+    },
+    label: {
+        ...typography.bodySm,
         color: colors.onSurfaceVariant,
+        marginBottom: 2,
     },
-    infoValue: {
-        ...typography.bodyMd,
+    value: {
+        ...typography.bodyLg,
         color: colors.onSurface,
-        marginLeft: spacing.xxxl,
-    },
-    preferenceItem: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: colors.surface,
-        borderRadius: borderRadius.md,
-        padding: spacing.lg,
-        marginBottom: spacing.md,
-        borderWidth: 1,
-        borderColor: colors.outlineVariant,
-    },
-    preferenceHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    preferenceLabel: {
-        ...typography.bodyMd,
-        color: colors.onSurface,
-    },
-    aboutCard: {
-        backgroundColor: colors.surface,
-        borderRadius: borderRadius.md,
-        padding: spacing.lg,
-        borderWidth: 1,
-        borderColor: colors.outlineVariant,
-    },
-    aboutRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: spacing.md,
-    },
-    aboutLabel: {
-        ...typography.bodyMd,
-        color: colors.onSurfaceVariant,
-    },
-    aboutValue: {
-        ...typography.bodyMd,
-        color: colors.onSurface,
-        fontWeight: '600',
+        fontWeight: '500',
     },
     logoutButton: {
-        flexDirection: 'row',
         backgroundColor: colors.error,
-        borderRadius: borderRadius.md,
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.lg,
+        flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        paddingVertical: spacing.md,
+        borderRadius: borderRadius.md,
         marginTop: spacing.xl,
     },
     logoutText: {
-        ...typography.headingSm,
-        color: colors.onPrimary,
+        ...typography.labelLg,
+        color: '#FFF',
+        fontWeight: 'bold',
     },
 });
