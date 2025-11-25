@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
-import { RootStackParamList } from '../types';
+import { RootStackParamList, User } from '../types'; 
 import { TicketCard } from '../components/TicketCard';
 import { getStatusLabel, getStatusColor } from '../lib/utils';
 import { colors, spacing, typography } from '../lib/theme';
@@ -19,7 +19,7 @@ import api from '../lib/api';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Tickets'>;
 
-// Interface ajustada para satisfazer o componente TicketCard
+// Interface atualizada para incluir 'assignedTo'
 interface Ticket {
     id: string;
     title: string;
@@ -27,9 +27,10 @@ interface Ticket {
     date: string;
     description: string; 
     severity: 'high' | 'medium' | 'low';
-    // CORREÇÃO AQUI: Mudamos de 'string' para 'any' para aceitar qualquer texto do banco
     category: any; 
-    requester: string;
+    requester: User; 
+    // CAMPO OBRIGATÓRIO PARA O NOVO CARD
+    assignedTo?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -70,9 +71,20 @@ export default function TicketsScreen({ navigation, route }: Props) {
                 date: t.dataAbertura_Cham,
                 description: t.descricao_Cham || 'Sem descrição', 
                 severity: traduzirPrioridade(t.prioridade_Cham),
-                // O banco manda o texto puro (ex: "Impressora"), o 'any' acima permite passar isso pro Card
                 category: t.categoria_Cham || 'Geral',
-                requester: `${t.nome_User || ''} ${t.sobrenome_User || ''}`.trim() || 'Usuário',
+                
+                requester: {
+                    id: '0', 
+                    name: `${t.nome_User || ''} ${t.sobrenome_User || ''}`.trim() || 'Usuário',
+                    email: '',
+                    department: ''
+                },
+
+                // AQUI ESTÁ O SEGREDO: Pegamos o nome do técnico do banco
+                assignedTo: t.tecNome 
+                    ? `${t.tecNome} ${t.tecSobrenome || ''}`.trim() 
+                    : 'Pendente',
+                
                 createdAt: t.dataAbertura_Cham,
                 updatedAt: t.dataAbertura_Cham
             }));

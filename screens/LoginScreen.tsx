@@ -61,7 +61,7 @@ export default function LoginScreen() {
                         
                         <Text style={styles.title}>HelpBox</Text>
                         <Text style={styles.subtitle}>
-                            Suporte aos chamados da Esfera Contabilidade
+                           Insira suas credenciais para continuar.
                         </Text>
                     </View>
 
@@ -75,7 +75,7 @@ export default function LoginScreen() {
                             />
                             <TextInput
                                 style={styles.input}
-                                placeholder="seu@email.com"
+                                placeholder="Insira seu e-mail corporativo"
                                 value={email}
                                 onChangeText={setEmail}
                                 keyboardType="email-address"

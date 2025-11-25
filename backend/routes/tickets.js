@@ -2,14 +2,9 @@ const express = require('express');
 const router = express.Router();
 const { getPool, sql } = require('../db.js');
 
-// NÃO precisamos mais importar iaService nem verificarADM
-// pois removemos as rotas que usavam eles.
-
 // ====================================================================
-// 🛠️ FUNÇÃO AUXILIAR (REUTILIZADA DA WEB)
+// 🛠️ FUNÇÃO AUXILIAR (Listagem)
 // ====================================================================
-// Mantivemos essa função IDÊNTICA à Web para garantir que a listagem
-// e a ordenação sejam as mesmas nas duas plataformas.
 async function fetchChamadosList(req, res, customWhere = '', customOrder = '', params = {}) {
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 5;
@@ -37,7 +32,6 @@ async function fetchChamadosList(req, res, customWhere = '', customOrder = '', p
         }
     }
 
-    // Lógica de ordenação SQL (Idêntica à Web)
     const defaultOrder = `
         ORDER BY 
         CASE 
@@ -72,9 +66,11 @@ async function fetchChamadosList(req, res, customWhere = '', customOrder = '', p
             }
         }
 
+        // --- AQUI FOI A CORREÇÃO ---
+        // Adicionei 'C.categoria_Cham' na lista de campos selecionados
         const query = `
             SELECT C.id_Cham, C.titulo_Cham, C.status_Cham, C.dataAbertura_Cham, 
-                   C.prioridade_Cham, C.descricao_Cham,
+                   C.prioridade_Cham, C.descricao_Cham, C.categoria_Cham,
                    U.nome_User, U.sobrenome_User, 
                    TEC.nome_User as tecNome, TEC.sobrenome_User as tecSobrenome
             FROM Chamado AS C
@@ -105,10 +101,9 @@ async function fetchChamadosList(req, res, customWhere = '', customOrder = '', p
 }
 
 // ====================================================================
-// 🚦 ROTAS DE LEITURA (GET) - APENAS O NECESSÁRIO
+// 🚦 ROTAS DE LEITURA
 // ====================================================================
 
-// 1. MEUS CHAMADOS (A rota que o App vai usar)
 router.get('/meus', async (req, res) => {
     const usuarioId = req.session?.usuario?.id;
     const tipoFilter = req.query.tipo || ''; 
@@ -116,8 +111,6 @@ router.get('/meus', async (req, res) => {
     if (!usuarioId) return res.status(401).json({ error: 'Não autenticado' });
 
     let where = '';
-    
-    // Filtros de escopo
     if (tipoFilter === 'criado') {
         where = `C.clienteId_Cham = @usuarioId`;
     } else if (tipoFilter === 'atribuido') {
@@ -126,7 +119,6 @@ router.get('/meus', async (req, res) => {
         where = `(C.tecResponsavel_Cham = @usuarioId OR C.clienteId_Cham = @usuarioId)`;
     }
 
-    // Ordenação personalizada (seus chamados em andamento primeiro)
     const order = `
         ORDER BY 
         CASE WHEN C.status_Cham = 'Em andamento' AND C.tecResponsavel_Cham = @usuarioId THEN 0 ELSE 1 END ASC,
@@ -137,7 +129,6 @@ router.get('/meus', async (req, res) => {
     await fetchChamadosList(req, res, where, order, { usuarioId });
 });
 
-// 2. DETALHES DO CHAMADO (Para quando clicar no card)
 router.get('/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: 'ID inválido.' });
