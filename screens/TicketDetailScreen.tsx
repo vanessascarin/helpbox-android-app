@@ -40,8 +40,10 @@ interface TicketDetail {
     assignedTo?: {
         name: string;
     };
+    // Campos de Solução
     aiSolution?: string;
     techSolution?: string;
+    finalSolution?: string;
 }
 
 export default function TicketDetailScreen({ navigation, route }: Props) {
@@ -89,8 +91,10 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
                     name: `${dados.tecNome} ${dados.tecSobrenome || ''}`.trim(),
                 } : undefined,
 
+                // Mapeamento das Soluções
                 aiSolution: dados.solucaoIA_Cham,
-                techSolution: dados.solucaoTec_Cham
+                techSolution: dados.solucaoTec_Cham,
+                finalSolution: dados.solucaoFinal_Cham
             };
 
             setTicket(detalheFormatado);
@@ -146,7 +150,7 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
                     showsVerticalScrollIndicator={false}
                     contentContainerStyle={styles.scrollContent}
                 >
-                    {/* Título e Status */}
+                    {/* --- BLOCO 1: CABEÇALHO (Título, Status, ID) --- */}
                     <View style={styles.section}>
                         <Text style={styles.title}>{ticket.title}</Text>
                         <View style={styles.statusRow}>
@@ -155,9 +159,7 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
                                     {getStatusLabel(ticket.status)}
                                 </Text>
                             </View>
-                            <View
-                                style={[styles.severityBadge, { backgroundColor: severityColor }]}
-                            >
+                            <View style={[styles.severityBadge, { backgroundColor: severityColor }]}>
                                 <Text style={styles.badgeText}>
                                     {getSeverityLabel(ticket.severity)}
                                 </Text>
@@ -165,55 +167,54 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
                         </View>
                     </View>
 
-                    {/* Informações principais */}
                     <View style={styles.section}>
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>ID do Ticket:</Text>
                             <Text style={styles.value}>{ticket.id}</Text>
                         </View>
                         <View style={styles.divider} />
-
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Categoria:</Text>
-                            <Text style={styles.value}>
-                                {getCategoryLabel(ticket.category)}
-                            </Text>
+                            <Text style={styles.value}>{getCategoryLabel(ticket.category)}</Text>
                         </View>
                         <View style={styles.divider} />
-
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Data de Abertura:</Text>
-                            {/* CORREÇÃO AQUI: new Date() */}
                             <Text style={styles.value}>{formatDate(new Date(ticket.createdAt))}</Text>
                         </View>
                         <View style={styles.divider} />
-
                         <View style={styles.infoRow}>
                             <Text style={styles.label}>Última Atualização:</Text>
-                            {/* CORREÇÃO AQUI: new Date() */}
                             <Text style={styles.value}>{formatDate(new Date(ticket.updatedAt))}</Text>
                         </View>
                     </View>
 
-                    {/* Requester */}
+                    {/* --- BLOCO 2: PESSOAS (Solicitante e Técnico) --- */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Quem Abriu</Text>
                         <View style={styles.requesterCard}>
-                            <MaterialIcons
-                                name="person"
-                                size={32}
-                                color={colors.primary}
-                                style={{ marginRight: spacing.md }}
-                            />
+                            <MaterialIcons name="person" size={32} color={colors.primary} style={{ marginRight: spacing.md }} />
                             <View>
-                                <Text style={styles.requesterName}>
-                                    {ticket.requester.name}
-                                </Text>
+                                <Text style={styles.requesterName}>{ticket.requester.name}</Text>
                             </View>
                         </View>
                     </View>
 
-                    {/* Descrição */}
+                    {ticket.assignedTo && (
+                        <View style={styles.section}>
+                            <Text style={styles.sectionTitle}>Atribuído a</Text>
+                            <View style={styles.requesterCard}>
+                                <MaterialIcons name="assignment-ind" size={32} color={colors.success} style={{ marginRight: spacing.md }} />
+                                <View>
+                                    <Text style={styles.requesterName}>{ticket.assignedTo.name}</Text>
+                                </View>
+                            </View>
+                        </View>
+                    )}
+
+                    {/* --- BLOCO 3: CONTEÚDO (Descrição e Soluções) --- */}
+                    
+                    {/* Descrição (Sempre visível) */}
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Descrição</Text>
                         <View style={styles.descriptionCard}>
@@ -221,25 +222,49 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
                         </View>
                     </View>
 
-                    {/* Atribuído a */}
-                    {ticket.assignedTo && (
+                    {/* Sugestão IA (Visível para todos os status se houver conteúdo ou para mostrar vazio) */}
+                    <View style={styles.section}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
+                            <MaterialIcons name="smart-toy" size={20} color={colors.primary} style={{ marginRight: 8 }} />
+                            <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Sugestão gerada por IA</Text>
+                        </View>
+                        <View style={[styles.descriptionCard, { backgroundColor: '#F0F7FF', borderColor: '#CCE5FF' }]}>
+                            <Text style={[styles.description, !ticket.aiSolution && { fontStyle: 'italic', color: colors.onSurfaceVariant }]}>
+                                {ticket.aiSolution || 'Nenhuma sugestão gerada.'}
+                            </Text>
+                        </View>
+                    </View>
+
+                    {/* Solução Técnico (Visível se Em Andamento ou Fechado) */}
+                    {(ticket.status === 'in_progress' || ticket.status === 'closed') && (
                         <View style={styles.section}>
-                            <Text style={styles.sectionTitle}>Atribuído a</Text>
-                            <View style={styles.requesterCard}>
-                                <MaterialIcons
-                                    name="assignment-ind"
-                                    size={32}
-                                    color={colors.success}
-                                    style={{ marginRight: spacing.md }}
-                                />
-                                <View>
-                                    <Text style={styles.requesterName}>
-                                        {ticket.assignedTo.name}
-                                    </Text>
-                                </View>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
+                                <MaterialIcons name="engineering" size={20} color={colors.warning} style={{ marginRight: 8 }} />
+                                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Solução Técnico</Text>
+                            </View>
+                            <View style={[styles.descriptionCard, { backgroundColor: '#FFF9F0', borderColor: '#FFEeba' }]}>
+                                <Text style={[styles.description, !ticket.techSolution && { fontStyle: 'italic', color: colors.onSurfaceVariant }]}>
+                                    {ticket.techSolution || 'Ainda não preenchido pelo técnico.'}
+                                </Text>
                             </View>
                         </View>
                     )}
+
+                    {/* Solução Final (Visível apenas se Fechado) */}
+                    {ticket.status === 'closed' && (
+                        <View style={styles.section}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
+                                <MaterialIcons name="check-circle" size={20} color={colors.success} style={{ marginRight: 8 }} />
+                                <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Solução Final</Text>
+                            </View>
+                            <View style={[styles.descriptionCard, { backgroundColor: '#F0FFF4', borderColor: '#C3E6CB' }]}>
+                                <Text style={[styles.description, !ticket.finalSolution && { fontStyle: 'italic', color: colors.onSurfaceVariant }]}>
+                                    {ticket.finalSolution || 'Sem solução final registrada.'}
+                                </Text>
+                            </View>
+                        </View>
+                    )}
+
                 </ScrollView>
             </View>
         </SafeAreaView>
@@ -247,137 +272,29 @@ export default function TicketDetailScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
-    container: {
-        flex: 1,
-        backgroundColor: colors.background,
-    },
-    centerContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.lg,
-        backgroundColor: colors.surface,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.outlineVariant,
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: borderRadius.md,
-        backgroundColor: colors.surfaceVariant,
-    },
-    headerTitle: {
-        ...typography.headingMd,
-        color: colors.onSurface,
-    },
-    scrollContent: {
-        paddingHorizontal: spacing.lg,
-        paddingTop: spacing.lg,
-        paddingBottom: spacing.xl,
-    },
-    section: {
-        marginBottom: spacing.xl,
-    },
-    title: {
-        ...typography.headingMd,
-        color: colors.onSurface,
-        marginBottom: spacing.md,
-    },
-    statusRow: {
-        flexDirection: 'row',
-        gap: spacing.md,
-    },
-    statusBadge: {
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-        borderRadius: borderRadius.full,
-    },
-    severityBadge: {
-        paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
-        borderRadius: borderRadius.full,
-    },
-    badgeText: {
-        ...typography.labelMd,
-        color: colors.onPrimary,
-    },
-    sectionTitle: {
-        ...typography.headingSm,
-        color: colors.onSurface,
-        marginBottom: spacing.md,
-    },
-    infoRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingVertical: spacing.md,
-    },
-    label: {
-        ...typography.bodyMd,
-        color: colors.onSurfaceVariant,
-        flex: 1,
-    },
-    value: {
-        ...typography.bodyMd,
-        color: colors.onSurface,
-        fontWeight: '600',
-        flex: 1,
-        textAlign: 'right',
-    },
-    divider: {
-        height: 1,
-        backgroundColor: colors.outlineVariant,
-    },
-    requesterCard: {
-        flexDirection: 'row',
-        backgroundColor: colors.surface,
-        borderRadius: borderRadius.md,
-        padding: spacing.lg,
-        borderWidth: 1,
-        borderColor: colors.outlineVariant,
-        alignItems: 'center',
-    },
-    requesterName: {
-        ...typography.headingSm,
-        color: colors.onSurface,
-    },
-    descriptionCard: {
-        backgroundColor: colors.surface,
-        borderRadius: borderRadius.md,
-        padding: spacing.lg,
-        borderWidth: 1,
-        borderColor: colors.outlineVariant,
-    },
-    description: {
-        ...typography.bodyMd,
-        color: colors.onSurface,
-        lineHeight: 24,
-    },
-    errorText: {
-        ...typography.bodyMd,
-        color: colors.error,
-        textAlign: 'center',
-        marginBottom: spacing.md,
-    },
-    retryButton: {
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
-        backgroundColor: colors.primary,
-        borderRadius: borderRadius.md,
-    },
-    retryText: {
-        color: colors.onPrimary,
-        fontWeight: '600',
-    },
+    safeArea: { flex: 1, backgroundColor: colors.background },
+    container: { flex: 1, backgroundColor: colors.background },
+    centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingVertical: spacing.lg, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.outlineVariant },
+    backButton: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center', borderRadius: borderRadius.md, backgroundColor: colors.surfaceVariant },
+    headerTitle: { ...typography.headingMd, color: colors.onSurface },
+    scrollContent: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xl },
+    section: { marginBottom: spacing.xl },
+    title: { ...typography.headingMd, color: colors.onSurface, marginBottom: spacing.md },
+    statusRow: { flexDirection: 'row', gap: spacing.md },
+    statusBadge: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: borderRadius.full },
+    severityBadge: { paddingHorizontal: spacing.md, paddingVertical: spacing.sm, borderRadius: borderRadius.full },
+    badgeText: { ...typography.labelMd, color: colors.onPrimary },
+    sectionTitle: { ...typography.headingSm, color: colors.onSurface, marginBottom: spacing.md },
+    infoRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: spacing.md },
+    label: { ...typography.bodyMd, color: colors.onSurfaceVariant, flex: 1 },
+    value: { ...typography.bodyMd, color: colors.onSurface, fontWeight: '600', flex: 1, textAlign: 'right' },
+    divider: { height: 1, backgroundColor: colors.outlineVariant },
+    requesterCard: { flexDirection: 'row', backgroundColor: colors.surface, borderRadius: borderRadius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.outlineVariant, alignItems: 'center' },
+    requesterName: { ...typography.headingSm, color: colors.onSurface },
+    descriptionCard: { backgroundColor: colors.surface, borderRadius: borderRadius.md, padding: spacing.lg, borderWidth: 1, borderColor: colors.outlineVariant },
+    description: { ...typography.bodyMd, color: colors.onSurface, lineHeight: 24 },
+    errorText: { ...typography.bodyMd, color: colors.error, textAlign: 'center', marginBottom: spacing.md },
+    retryButton: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md, backgroundColor: colors.primary, borderRadius: borderRadius.md },
+    retryText: { color: colors.onPrimary, fontWeight: '600' },
 });
