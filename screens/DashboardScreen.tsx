@@ -34,6 +34,7 @@ export default function DashboardScreen({ navigation }: Props) {
     const [tickets, setTickets] = useState<Ticket[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const themeColor = '#3e4487';
 
     // Função para traduzir status do SQL ('Aberto', 'Em andamento') para o App ('open', 'in_progress')
     const traduzirStatus = (statusBanco: string): 'open' | 'in_progress' | 'closed' => {
@@ -96,7 +97,7 @@ export default function DashboardScreen({ navigation }: Props) {
                                 <MaterialIcons name="help-outline" size={24} color={colors.onSurface} />
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => navigation.navigate('Profile')} style={styles.profileButton}>
-                                <MaterialIcons name="account-circle" size={32} color={colors.primary} />
+                                <MaterialIcons name="account-circle" size={32} color={themeColor} />
                             </TouchableOpacity>
                         </View>
                     )}
