@@ -65,7 +65,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     {/* Cabeçalho do Perfil */}
                     <View style={styles.profileHeader}>
                         <View style={styles.avatarContainer}>
-                            <MaterialIcons name="person" size={64} color={colors.onPrimary} />
+                            <MaterialIcons name="person" size={64} color="#ffff" />
                         </View>
                         <Text style={styles.userName}>{user?.name || 'Usuário'}</Text>
                         {/* Exibe o ID logo abaixo do nome, bem discreto */}
@@ -76,7 +76,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     
                     <View style={styles.card}>
                         <View style={styles.row}>
-                            <MaterialIcons name="badge" size={24} color={colors.primary} style={styles.icon} />
+                            <MaterialIcons name="badge" size={24} color='#3e4487' style={styles.icon} />
                             <View>
                                 <Text style={styles.label}>Nível de Acesso</Text>
                                 <Text style={styles.value}>
@@ -90,7 +90,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     
                     <View style={styles.card}>
                         <View style={styles.row}>
-                            <MaterialIcons name="email" size={24} color={colors.primary} style={styles.icon} />
+                            <MaterialIcons name="email" size={24} color='#3e4487' style={styles.icon} />
                             <View>
                                 <Text style={styles.label}>E-mail</Text>
                                 <Text style={styles.value}>{user?.email || 'Não informado'}</Text>
@@ -100,7 +100,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
                     <View style={styles.card}>
                         <View style={styles.row}>
-                            <MaterialIcons name="business" size={24} color={colors.primary} style={styles.icon} />
+                            <MaterialIcons name="business" size={24} color='#3e4487' style={styles.icon} />
                             <View>
                                 <Text style={styles.label}>Departamento</Text>
                                 <Text style={styles.value}>{user?.department || 'Geral'}</Text>
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
         width: 100,
         height: 100,
         borderRadius: 50,
-        backgroundColor: colors.primary, 
+        backgroundColor:'#3e4487ff', 
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: spacing.md,
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     logoutButton: {
-        backgroundColor: colors.error,
+        backgroundColor:'#C62828',
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',

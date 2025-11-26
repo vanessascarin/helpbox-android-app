@@ -87,7 +87,7 @@ export default function UserGuideScreen({ navigation }: Props) {
                                     <MaterialIcons
                                         name={item.icon as any}
                                         size={24}
-                                        color={colors.primary}
+                                        color="#3e4487"
                                     />
                                 </View>
                                 <Text style={styles.cardTitle}>{item.title}</Text>
@@ -120,20 +120,7 @@ export default function UserGuideScreen({ navigation }: Props) {
                         </View>
                     </View>
 
-                    {/* Suporte */}
-                    <View style={styles.supportSection}>
-                        <MaterialIcons
-                            name="help"
-                            size={32}
-                            color={colors.info}
-                            style={{ marginBottom: spacing.md }}
-                        />
-                        <Text style={styles.supportTitle}>Precisa de Ajuda?</Text>
-                        <Text style={styles.supportText}>
-                            Se encontrar problemas ou tiver dúvidas, entre em contato com o
-                            suporte técnico através do e-mail: support@company.com
-                        </Text>
-                    </View>
+                    
                 </ScrollView>
             </View>
         </SafeAreaView>
@@ -177,7 +164,7 @@ const styles = StyleSheet.create({
         paddingBottom: spacing.xl,
     },
     introSection: {
-        backgroundColor: colors.primary,
+        backgroundColor: '#3e4487',
         borderRadius: borderRadius.md,
         padding: spacing.lg,
         marginBottom: spacing.xl,
@@ -198,7 +185,7 @@ const styles = StyleSheet.create({
         padding: spacing.lg,
         marginBottom: spacing.md,
         borderLeftWidth: 4,
-        borderLeftColor: colors.primary,
+        borderLeftColor: '#3e4487',
         shadowColor: colors.scrim,
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.08,
@@ -230,7 +217,7 @@ const styles = StyleSheet.create({
         lineHeight: 22,
     },
     tipsSection: {
-        backgroundColor: colors.info,
+        backgroundColor: '#3e4487',
         borderRadius: borderRadius.md,
         padding: spacing.lg,
         marginVertical: spacing.xl,
